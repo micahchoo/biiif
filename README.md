@@ -1,4 +1,4 @@
-# BIIIF CSV Tool: Create IIIF Collections from Spreadsheets 📊
+# [pre-alpha - only for testing]BIIIF CSV Tool: Create IIIF Collections from Spreadsheets 📊
 
 A user-friendly tool for creating [IIIF](https://iiif.io) collections using spreadsheets. Perfect for libraries, archives, and museums wanting to make their digital collections accessible.
 
