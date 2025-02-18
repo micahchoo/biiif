@@ -1,0 +1,3 @@
+label: Invalid Manifest
+description: Manifest inside manifest (should warn)
+attribution: Example Institution

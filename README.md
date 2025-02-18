@@ -1,182 +1,140 @@
-# biiif (build iiif) 👷✨📃
+# BIIIF CSV Tool: Create IIIF Collections from Spreadsheets 📊
 
-[![Node version](https://img.shields.io/node/v/biiif.svg?style=flat)](http://nodejs.org/download/)
+A user-friendly tool for creating [IIIF](https://iiif.io) collections using spreadsheets. Perfect for libraries, archives, and museums wanting to make their digital collections accessible.
 
-<!-- ![IIIF Presentation API 3 compliant](https://img.shields.io/badge/iiif--presentation--api-%3E=3-blue.png) -->
+## What is IIIF?
+
+The International Image Interoperability Framework (IIIF) is a set of standards that makes it easy to share and display digital images, audio, and video online. This tool helps you create IIIF collections without needing to understand all the technical details.
+
+## Quick Start
+
+**Install the Tools**
+   ```bash
+   # Install Node.js if you haven't already
+   # Download from: https://nodejs.org/
+
+   # Create a project directory
+   mkdir my-iiif-project
+   cd my-iiif-project
+
+   # Install the tools
+   npm install biiif
+   npm install typescript ts-node @types/node
+   ```
+
+## Creating Your Collection
+
+### 1. Prepare Your Spreadsheet
+
+Create a CSV file (you can use Excel and save as CSV) with these columns:
+
+```csv
+hierarchy,label,description,attribution
+root,My Collection,A wonderful collection,My Institution
+root/photos,Photographs,Collection of photos,My Institution
+root/photos/manifest1,First Album,Photo album from 2024,My Institution
+root/photos/manifest1/canvas1,First Photo,Beautiful landscape,My Institution
+```
+
+#### Important Nesting Rules:
+- Collections can contain other collections or manifests
+- Manifests can only contain canvases
+- Canvases must be inside manifests
+- The tool will warn you if you break these rules
+
+Example valid structure:
+```
+root/ (Collection)
+├── photos/ (Collection)
+│   └── manifest1/ (Manifest)
+│       ├── canvas1
+│       └── canvas2
+└── audio/ (Collection)
+    └── manifest2/ (Manifest)
+        └── canvas1
+```
+
+### 2. Prepare Your Files
+
+Organize your files (images, audio, etc.) in a directory. The tool will automatically match files to canvases based on numbers in the filenames.
+
+**For Images:**
+```
+BHC001_01.jpg  -> matches canvas1
+photo_02.jpg   -> matches canvas2
+```
+
+**For Audio:**
+```
+part01.mp3     -> matches canvas1
+Part02.mp3     -> matches canvas2
+```
+
+### 3. Run the Conversion
 
 ```bash
-npm i biiif --save
+ts-node csv-to-biiif.ts metadata.csv output-dir input-files
 ```
+
+This will:
+- Create the IIIF directory structure
+- Copy files to the right locations
+- Extract metadata (dimensions, duration)
+- Create info.yml files
+- Validate the nesting structure
+
+### 4. Generate IIIF Collection
 
 ```bash
-const { build } = require('biiif');
-build('myfolder', 'http://example.com/myfolder');
+npx biiif output-dir https://your-website.com/iiif
 ```
 
-Organise your files according to a simple [naming convention](https://github.com/edsilv/biiif#examples) to generate [IIIF](http://iiif.io) content/data using 100% node.js! [IPFS](https://github.com/ipfs) compatible.
+This creates the final IIIF collection that you can serve from your website.
 
-Use [biiif-cli](https://github.com/edsilv/biiif-cli) to run from a terminal.
+## Metadata Options
 
-Note: This uses the [IIIF Presentation API v3](http://prezi3.iiif.io/api/presentation/3.0/), and is compatible with the [Universal Viewer](http://universalviewer.io) v3.
+Your CSV can include these columns:
 
-Github template repo for hosting IIIF on Netlify and Vercel: https://github.com/iiif-commons/biiif-template
-
-Building static sites with biiif workshop: https://github.com/edsilv/biiif-workshop
-
-## Parameters
-
-| Parameter     | Type   | Description                                                                                                                                     |
-| :------------ | :----- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `folder`      | string | The source folder of your IIIF collection/manifest on disk                                                                                      |
-| `url`         | string | The Url to use as the root for all generated manifest, asset identifiers                                                                        |
-| `virtualName` | string | Overrides the source folder name when generating identifiers e.g. a dat archive id you need to appear in Urls instead of the source folder name |
-
-## Conventions
-
-A collection is a folder with sub-folders whose names _do not_ start with an underscore.
-
-A manifest is a folder with sub-folders whose names _do_ start with an underscore.
-
-A collection's sub-folders (no underscore) are treated as further nested collections.
-
-A manifest's sub-folders (with underscore) are treated as canvases to add to the manifest.
-
-Files within 'canvas folders' (.jpg, .pdf, .mp4, .obj) are annotated onto the canvas with a `painting` motivation.
-
-## Annotations
-
-IIIF Presentation 3.0 uses the [Web Annotation Data Model](https://www.w3.org/TR/annotation-model/) to annotate canvases.
-
-By default, biiif will annotate any files it finds in a canvas directory (except `info.yml` and `thumb.jpg`) onto the canvas with a `painting` motivation.
-
-This is handy as a quick way to generate simple manifests. However, what if you want to annotate some text onto a canvas with a `commenting` motivation?
-
-Or what happens when you have obj or gltf files that require image textures to be located in the same directory? You don't want these files to be annotated onto the canvas too!
-
-This is where custom annotations come in. Just create a file `my-annotation.yml` in the canvas directory and set the desired properties in that.
-
-For example, here is `my-comment.yml`:
-
-```yml
-motivation: commenting
-value: This is my comment on the image
+```csv
+hierarchy,label,description,attribution,behavior,metadata.Author,metadata.Date
 ```
 
-Here we've excluded the `type` (`TextualBody` is assumed), and `format` (`text/plain` is assumed).
+Common fields:
+- **hierarchy**: Required. Defines the structure (e.g., "root/photos/manifest1/canvas1")
+- **label**: Required. Title or name
+- **description**: Optional. Detailed description
+- **attribution**: Optional. Credit line
+- **behavior**: Optional. Viewing hints (e.g., "paged", "continuous")
+- **metadata.*****: Optional. Custom metadata fields (e.g., metadata.Author, metadata.Date)
 
-What about the gltf example? Here's how `my-3d-object.yml` could look:
+## Features
 
-```yml
-value: assets/myobject.gltf
-```
+### Automatic Metadata Extraction
+- Images: Width and height are extracted automatically
+- Audio: Duration is extracted automatically
+- These values are added to the info.yml files
 
-Here we've excluded the `motivation` (`painting` is assumed), `type` (`Model` is assumed), and `format` (`model/gltf+json` is assumed).
+### File Matching Rules
+The tool matches files to canvases using these patterns:
+- Images: Looks for numbers at the end of filenames (e.g., "photo_01.jpg")
+- Audio: Looks for "part" followed by numbers (e.g., "part01.mp3")
 
-biiif knows that because it's a gltf file, it's likely to have all of the above values. You just need to include a `value` property pointing to where you've put the gltf file itself. In this case, an `assets` folder within the canvas directory. The associated image textures can live in the `assets` folder too, they won't get annotated unless you specifically ask for them to be.
+### Validation
+The tool validates your structure and warns about:
+- Canvases outside of manifests
+- Manifests inside other manifests
+- Missing required fields
 
-## Image Tile Services
+## Alternative: Manual Directory Structure
 
-biiif will automatically generate IIIF image tiles for any image it finds and put them in a `+tiles` directory, along with an associated `info.json`. The `+` is prepended to any directories generated by biiif and means it ignores them when generating manifests.
-The image service is added to the generated annotation for each image in your IIIF manifest.
+While the CSV method is recommended, you can also create collections by manually organizing directories. See the [Manual Structure Guide](manual-structure.md) for details.
 
-## Metadata
+## Need Help?
 
-Metadata is not mandatory, but can be included as an `info.yml` file within a collection, manifest, or canvas folder. e.g.
+- Check our [sample spreadsheet](sample-metadata.csv) for a complete example
+- Look at [test-metadata.csv](test-metadata.csv) for a real-world example
+- Open an issue on GitHub if you have questions
 
-```yml
-label: The Lord of the Rings
-description: The Lord of the Rings Trilogy
-attribution: J. R. R. Tolkien
-metadata:
-  License: Copyright Tolkien Estate
-  Author: J. R. R. Tolkien
-  Published Date: 29 July 1954
-```
+## License
 
-Here's an example of an `info.yml` supplying descriptive + rights properties and metadata for a gold-broach image manifest:
-
-https://github.com/nomadproject/objects/blob/gh-pages/collection/gold-broach/info.yml
-
-This manifest contains a single canvas folder `_gold-broach` with an image to be painted onto the canvas. If there were many canvases in this manifest it might make sense to add an `info.yml` to each subfolder with extra image-specific metadata.
-
-Within the `info.yml` you can set the `label`, `description`, and `attribution` [descriptive and rights properties](https://iiif.io/api/presentation/3.0/#appendices) at the top-level. IIIF Presentation 3 (in beta) has renamed `description` to `summary`, and `attribution` to `requiredStatement` but these will still work in IIIF viewers.
-
-Under these you can add a `metadata` section that is essentially a list of key value pairs containing any info you like (there is deliberately no specification for this as the IIIF spec writers feel it falls outside of their remit).
-
-## Thumbnails
-
-To add a thumbnail to your collection, manifest, or canvas simply include a file named `thumb.jpg` (any image file extension will work) in the directory.
-
-If no thumb image is found in a canvas directory, biiif checks to see if an image is being annotated onto the canvas with a painting motivation. If so, a thumb is generated (100 x 100px) from that.
-
-## Linked Manifests
-
-Often it's necessary to include IIIF manifests in your collection from elsewhere. To do this, include a `manifests.yml` file in your collection folder e.g.
-
-```yml
-manifests:
-  - id: http://test.com/collection/linkedmanifest1/index.json
-    label: Linked Manifest 1
-    thumbnail: http://test.com/collection/linkedmanifest1/thumb.jpg
-  - id: http://test.com/collection/linkedmanifest2/index.json
-    label: Linked Manifest 2
-  - id: http://test.com/collection/linkedmanifest3/index.json
-```
-
-If you leave the `label` property blank, it will default to the name of the last folder in the `id` URL.
-
-Including a `manifests.yml` file in a folder without any sub-folders forces it to behave like a collection.
-
-## Examples
-
-<!--MozFest zine workshop published on glitch: https://glitch.com/~edsilv-mozfest-zine-->
-
-A repo of test manifests: https://github.com/edsilv/biiif-test-manifests
-
-Collection for the [Nomad Project](https://nomad-project.co.uk): https://github.com/nomadproject/objects
-
-IIIF 3D manifests: https://github.com/edsilv/iiif-3d-manifests
-
-...
-
-Here is an example of how to organise your files/folders for biiif.
-
-This example only has a single root collection, but biiif will happily build collections to any nested depth.
-
-biiif will accept a manifest folder too, generating a single manifest `index.json`.
-
-```yml
-lord-of-the-rings                  // collection
-├── info.yml                       // collection metadata
-├── thumb.jpg                      // collection thumbnail
-├── 0-the-fellowship-of-the-ring   // manifest
-|   ├── _page-1                    // canvas
-|   |   ├── page-1.jpg             // content annotation
-|   |   └── info.yml               // canvas metadata
-|   ├── _page-2                    // canvas
-|   |   ├── page-2.jpg             // content annotation
-|   |   └── info.yml               // canvas metadata
-|   ├── _page-n                    // canvas
-|   |   ├── page-n.jpg             // content annotation
-|   |   └── info.yml               // canvas metadata
-|   ├── info.yml                   // manifest metadata
-|   └── thumb.jpg                  // manifest thumbnail
-├── 1-the-two-towers               // manifest
-|   ├── _page-1                    // canvas
-|   ├── _page-2                    // canvas
-|   ├── _page-n                    // canvas
-|   ├── info.yml                   // manifest metadata
-|   └── thumb.jpg                  // manifest thumbnail
-└── 2-the-return-of-the-king       // manifest
-    ├── _page-1                    // canvas
-    ├── _page-2                    // canvas
-    ├── _page-n                    // canvas
-    ├── info.yml                   // manifest metadata
-    └── thumb.jpg                  // manifest thumbnail
-```
-
-## Tips
-
-If you need to include a folder in your project but don't want biiif to treat it as a manifest, add a `!` to the start of its name, e.g. `!ignorethisfolder`.
-
-Watch out for ":" in metadata descriptions, these will throw an error when parsing the YML.
+MIT License - feel free to use this tool for your projects!

@@ -546,11 +546,11 @@ export const writeJson = (path: string, json: string): Promise<void> => {
   });
 };
 
-export const readYml = (path: string): Promise<string> => {
-  return new Promise<string>((resolve, reject) => {
+export const readYml = (path: string): Promise<any> => {
+  return new Promise<any>((resolve, reject) => {
     try {
       const doc = yaml.load(fs.readFileSync(path, "utf8"));
-      resolve(doc);
+      resolve(doc as any);
     } catch (e) {
       reject(e);
     }

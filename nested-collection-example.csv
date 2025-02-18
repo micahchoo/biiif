@@ -1,0 +1,9 @@
+hierarchy,label,description,attribution
+root,Root Collection,Top level collection,Example Institution
+root/subcollection1,Sub Collection 1,First sub-collection,Example Institution
+root/subcollection1/manifest1,First Manifest,A manifest in sub-collection 1,Example Institution
+root/subcollection1/manifest1/canvas1,Canvas 1,First canvas in manifest 1,Example Institution
+root/subcollection1/manifest1/canvas2,Canvas 2,Second canvas in manifest 1,Example Institution
+root/subcollection2,Sub Collection 2,Second sub-collection,Example Institution
+root/subcollection2/manifest2,Second Manifest,A manifest in sub-collection 2,Example Institution
+root/subcollection2/manifest2/canvas1,Canvas 1,First canvas in manifest 2,Example Institution

@@ -1,0 +1,9 @@
+hierarchy,label,description,attribution
+root,Root Collection,Top level collection,Example Institution
+root/collection1,Collection 1,A sub-collection,Example Institution
+root/collection1/manifest1,Manifest 1,A valid manifest,Example Institution
+root/collection1/manifest1/canvas1,Canvas 1,Valid canvas in manifest,Example Institution
+root/collection1/canvas1,Invalid Canvas,Canvas directly in collection (should warn),Example Institution
+root/manifest1,Manifest in Root,A manifest in root collection,Example Institution
+root/manifest1/manifest2,Invalid Manifest,Manifest inside manifest (should warn),Example Institution
+root/manifest1/canvas1,Canvas 1,Valid canvas in manifest,Example Institution
